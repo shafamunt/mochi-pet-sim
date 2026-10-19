@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#ff9ec6">
+<title>Mochi the Cat</title>
+<style>
+  :root{
+    --pink:#ff9ec6;
+    --pink-dark:#f0759f;
+    --pink-light:#ffe9f2;
+    --bg:#fff7fb;
+    --ink:#5b4a52;
+    --card:#ffffff;
+    --bar-bg:#f3e4ec;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Segoe UI", system-ui, sans-serif;
+    display:flex;
+    flex-direction:column;
+    min-height:100vh;
+    align-items:center;
+  }
+  header{
+    width:100%;
+    max-width:520px;
+    padding:14px 16px 8px;
+    text-align:center;
+  }
+  header h1{
+    margin:0 0 6px;
+    font-size:26px;
+    color:var(--pink-dark);
+    letter-spacing:1px;
+  }
+  #nameRow{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    font-size:16px;
+  }
+  #nameInput{
+    font-size:20px;
+    font-weight:bold;
+    color:var(--ink);
+    border:2px solid var(--pink);
+    border-radius:14px;
+    padding:6px 12px;
+    width:170px;
+    text-align:center;
+    background:#fff;
+    outline:none;
+  }
+  #breedBadge{
+    font-size:12px;
+    background:var(--pink-light);
+    color:var(--pink-dark);
+    border-radius:999px;
+    padding:4px 10px;
+    font-weight:bold;
+  }
+  main{
+    width:100%;
+    max-width:520px;
+    padding:0 14px 96px;
+  }
+  .tabpage{ display:none; }
+  .tabpage.active{ display:block; }
+
+  /* ---------- stage ---------- */
+  #stage{
+    position:relative;
+    width:100%;
+    aspect-ratio: 300 / 340;
+    max-height:52vh;
+    margin:8px auto 4px;
+    background:linear-gradient(180deg, #ffeef6 0%, #fff 78%);
+    border:3px solid var(--pink);
+    border-radius:28px;
+    overflow:hidden;
+    touch-action:none;
+  }
+  #petArea{ width:100%; height:100%; display:block; cursor:pointer; touch-action:none; }
+  #catAll{ animation:bob 3.2s ease-in-out infinite; }
+  @keyframes bob{ 50%{ transform:translateY(-4px);} }
+  .eye{ transform-box:fill-box; transform-origin:center; transition:transform 0.08s; }
+  #floaters{ position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+  .floater{
+    position:absolute;
+    font-size:26px;
+    animation:rise 1.4s ease-out forwards;
+    pointer-events:none;
+    user-select:none;
+  }
+  @keyframes rise{
+    0%{ transform:translate(-50%,-50%) scale(0.6); opacity:0; }
+    15%{ opacity:1; }
+    100%{ transform:translate(-50%,-140px) scale(1.25); opacity:0; }
+  }
+  .floaterText{
+    position:absolute;
+    font-size:18px;
+    font-weight:bold;
+    color:var(--pink-dark);
+    animation:rise 1.6s ease-out forwards;
+    pointer-events:none;
+    white-space:nowrap;
+  }
+  #purrBubble{
+    position:absolute;
+    top:8%;
+    left:50%;
+    transform:translateX(-50%);
+    background:#fff;
+    border:2px solid var(--pink);
+    color:var(--pink-dark);
+    font-weight:bold;
+    font-size:17px;
+    padding:6px 14px;
+    border-radius:999px;
+    opacity:0;
+    transition:opacity 0.25s;
+    pointer-events:none;
+  }
+  #purrBubble.show{ opacity:1; }
+  #petHint{
+    text-align:center;
+    font-size:14px;
+    color:#a07a8c;
+    margin:6px 0 2px;
+  }
+  #statusText{
+    text-align:center;
+    font-size:16px;
+    font-weight:bold;
+    color:var(--pink-dark);
+    min-height:44px;
+    margin:4px 8px;
+  }
+
+  /* ---------- meters ---------- */
+  .meterRow{ margin:10px 4px; }
+  .meterLabel{
+    display:flex;
+    justify-content:space-between;
+    font-size:15px;
+    font-weight:bold;
+    margin-bottom:5px;
+  }
+  .meterBar{
+    height:22px;
+    background:var(--bar-bg);
+    border-radius:999px;
+    overflow:hidden;
+    border:2px solid #ecc9da;
+  }
+  .meterFill{
+    height:100%;
+    width:50%;
+    border-radius:999px;
+    transition:width 0.5s ease;
+  }
+  #hungerFill{ background:linear-gradient(90deg,#ffb35c,#ff8a3d); }
+  #happyFill{ background:linear-gradient(90deg,#ff9ec6,#f0759f); }
+
+  /* ---------- buttons ---------- */
+  .btnRow{
+    display:flex;
+    gap:12px;
+    justify-content:center;
+    margin:16px 0 6px;
+  }
+  .bigBtn{
+    flex:1;
+    max-width:220px;
+    font-size:20px;
+    font-weight:bold;
+    padding:16px 10px;
+    border:none;
+    border-radius:20px;
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 4px 0 rgba(0,0,0,0.12);
+    font-family:inherit;
+  }
+  .bigBtn:active{ transform:translateY(3px); box-shadow:none; }
+  #feedBtn{ background:linear-gradient(180deg,#ffa95e,#ff8a3d); }
+  #playBtn{ background:linear-gradient(180deg,#8fb8ff,#5f8ff5); }
+
+  /* ---------- tabs ---------- */
+  nav#tabs{
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    display:flex;
+    justify-content:center;
+    background:#fff;
+    border-top:2px solid var(--pink);
+    padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+    gap:8px;
+    z-index:50;
+  }
+  .tabBtn{
+    flex:1;
+    max-width:170px;
+    font-size:17px;
+    font-weight:bold;
+    padding:14px 6px;
+    border-radius:16px;
+    border:2px solid transparent;
+    background:#fdf3f8;
+    color:#a07a8c;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .tabBtn.active{
+    background:var(--pink);
+    color:#fff;
+    border-color:var(--pink-dark);
+  }
+
+  /* ---------- wardrobe ---------- */
+  .outfitCard{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    width:100%;
+    text-align:left;
+    background:var(--card);
+    border:3px solid #f3d6e3;
+    border-radius:20px;
+    padding:16px;
+    margin:10px 0;
+    cursor:pointer;
+    font-family:inherit;
+    font-size:16px;
+    color:var(--ink);
+  }
+  .outfitCard .emoji{ font-size:34px; }
+  .outfitCard .t{ font-weight:bold; font-size:17px; }
+  .outfitCard .d{ font-size:13px; color:#a07a8c; }
+  .outfitCard.wearing{ border-color:var(--pink-dark); background:var(--pink-light); }
+  .outfitCard .tag{
+    margin-left:auto;
+    font-size:12px;
+    font-weight:bold;
+    color:var(--pink-dark);
+  }
+
+  /* ---------- settings ---------- */
+  .setCard{
+    background:var(--card);
+    border:3px solid #f3d6e3;
+    border-radius:20px;
+    padding:16px;
+    margin:10px 0;
+  }
+  .setCard h3{ margin:0 0 10px; color:var(--pink-dark); font-size:17px; }
+  .breedOpt{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px;
+    border:2px solid #f3d6e3;
+    border-radius:14px;
+    margin:8px 0;
+    cursor:pointer;
+    font-size:15px;
+  }
+  .breedOpt input{ transform:scale(1.4); }
+  #resetBtn{
+    width:100%;
+    font-size:16px;
+    font-weight:bold;
+    padding:14px;
+    border-radius:16px;
+    border:2px solid #e88;
+    background:#fff0f0;
+    color:#c05050;
+    cursor:pointer;
+    font-family:inherit;
+  }
+
+  /* ---------- breed modal ---------- */
+  #breedModal{
+    position:fixed;
+    inset:0;
+    background:rgba(91,74,82,0.55);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:20px;
+  }
+  #breedModal.hidden{ display:none; }
+  #breedBox{
+    background:#fff;
+    border-radius:26px;
+    padding:24px;
+    max-width:400px;
+    width:100%;
+    text-align:center;
+    border:4px solid var(--pink);
+  }
+  #breedBox h2{ color:var(--pink-dark); margin:0 0 6px; }
+  #breedBox p{ font-size:14px; color:#a07a8c; margin:0 0 14px; }
+  .breedCard{
+    display:block;
+    width:100%;
+    margin:10px 0;
+    padding:16px;
+    border-radius:18px;
+    border:3px solid #f3d6e3;
+    background:#fff;
+    cursor:pointer;
+    font-family:inherit;
+    color:var(--ink);
+  }
+  .breedCard:hover{ border-color:var(--pink); }
+  .breedCard .t{ font-size:18px; font-weight:bold; }
+  .breedCard .d{ font-size:13px; color:#a07a8c; margin-top:4px; }
+  .breedCard .def{
+    display:inline-block;
+    font-size:11px;
+    font-weight:bold;
+    background:var(--pink-light);
+    color:var(--pink-dark);
+    border-radius:999px;
+    padding:2px 10px;
+    margin-top:6px;
+  }
+
+  /* ---------- play overlay ---------- */
+  #playOverlay{
+    position:absolute;
+    inset:0;
+    background:rgba(255,247,251,0.96);
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    z-index:20;
+    border-radius:25px;
+    overflow:hidden;
+  }
+  #playOverlay.open{ display:flex; }
+  #playTop{
+    width:100%;
+    display:flex;
+    justify-content:space-between;
+    padding:12px 18px;
+    font-size:18px;
+    font-weight:bold;
+    color:var(--pink-dark);
+  }
+  #playField{ position:relative; flex:1; width:100%; }
+  #mouse{
+    position:absolute;
+    font-size:52px;
+    cursor:pointer;
+    user-select:none;
+    transition:left 0.25s, top 0.25s;
+    line-height:1;
+  }
+  #playResult{
+    position:absolute;
+    inset:0;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    background:rgba(255,247,251,0.97);
+    text-align:center;
+    padding:20px;
+  }
+  #playResult.show{ display:flex; }
+  #playResult .score{ font-size:44px; font-weight:bold; color:var(--pink-dark); }
+  #playResult p{ font-size:16px; margin:10px 0 18px; }
+  #playClose{
+    font-size:18px;
+    font-weight:bold;
+    padding:14px 34px;
+    border:none;
+    border-radius:18px;
+    background:var(--pink);
+    color:#fff;
+    cursor:pointer;
+    font-family:inherit;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Welcome to Mochi's Home</h1>
+  <div id="nameRow">
+    <span>My cat's name:</span>
+    <input id="nameInput" maxlength="16" value="Mochi" aria-label="Cat name">
+  </div>
+  <div style="margin-top:6px;"><span id="breedBadge">Lynx Point Siamese</span></div>
+</header>
+
+<main>
+  <!-- ============ CAT TAB ============ -->
+  <section id="tab-cat" class="tabpage active">
+    <div id="stage">
+      <svg id="petArea" viewBox="0 0 300 340" aria-label="Pet the cat">
+        <!-- rug -->
+        <ellipse cx="150" cy="312" rx="110" ry="20" fill="#f6dbe7" opacity="0.7"/>
+
+        <g id="catAll">
+          <!-- ======== TAIL (lynx) ======== -->
+          <g id="tailLynx">
+            <path d="M232 250 C 272 242, 284 200, 262 184" stroke="#8a7a63" stroke-width="30" fill="none" stroke-linecap="round" id="tailLynxMain"/>
+            <g id="tailLynxStripes" stroke="#6e6250" stroke-width="7" stroke-linecap="round">
+              <path d="M252 206 l -16 10"/>
+              <path d="M264 228 l -18 7"/>
+              <path d="M266 250 l -16 4"/>
+            </g>
+          </g>
+          <!-- ======== TAIL (ragdoll, fluffier) ======== -->
+          <g id="tailRagdoll" style="display:none">
+            <path d="M232 250 C 272 242, 284 200, 262 184" stroke="#d9cbb6" stroke-width="48" fill="none" stroke-linecap="round"/>
+            <path d="M232 250 C 272 242, 284 200, 262 184" stroke="#9c8266" stroke-width="34" fill="none" stroke-linecap="round"/>
+          </g>
+
+          <!-- ======== BODY ======== -->
+          <path id="bodyMain" d="M150 118 C 100 118, 86 190, 91 248 C 95 288, 120 302, 150 302 C 180 302, 205 288, 209 248 C 214 190, 200 118, 150 118 Z" fill="#f7edd9"/>
+
+          <!-- haunches -->
+          <ellipse cx="104" cy="262" rx="26" ry="40" fill="#f7edd9" id="haunchL"/>
+          <ellipse cx="196" cy="262" rx="26" ry="40" fill="#f7edd9" id="haunchR"/>
+
+          <!-- leg stripes (lynx tabby) -->
+          <g id="legStripes" stroke="#8a7a63" stroke-width="5" stroke-linecap="round">
+            <path d="M88 250 l 22 -4"/>
+            <path d="M88 264 l 22 -4"/>
+            <path d="M212 250 l -22 -4"/>
+            <path d="M212 264 l -22 -4"/>
+          </g>
+
+          <!-- front paws (points) -->
+          <rect id="pawL" x="118" y="262" width="26" height="40" rx="13" fill="#8a7a63"/>
+          <rect id="pawR" x="156" y="262" width="26" height="40" rx="13" fill="#8a7a63"/>
+
+          <!-- ragdoll chest ruff -->
+          <path id="ruffChest" style="display:none" d="M122 148 Q 150 178 178 148 L 172 196 Q 150 210 128 196 Z" fill="#efe7d8"/>
+
+          <!-- ======== HEAD ======== -->
+          <polygon id="earL" points="100,62 84,8 132,40" fill="#8a7a63"/>
+          <polygon id="earR" points="200,62 216,8 168,40" fill="#8a7a63"/>
+          <polygon points="102,50 94,26 118,40" fill="#c9a1a8" opacity="0.8"/>
+          <polygon points="198,50 206,26 182,40" fill="#c9a1a8" opacity="0.8"/>
+
+          <!-- ear stripes (lynx tabby) -->
+          <g id="earStripes" stroke="#6e6250" stroke-width="4" stroke-linecap="round">
+            <path d="M94 34 l 14 6"/>
+            <path d="M98 46 l 12 5"/>
+            <path d="M206 34 l -14 6"/>
+            <path d="M202 46 l -12 5"/>
+          </g>
+
+          <!-- ragdoll ear tufts -->
+          <g id="earTufts" style="display:none" fill="#efe7d8">
+            <polygon points="84,10 78,-6 96,4"/>
+            <polygon points="216,10 222,-6 204,4"/>
+          </g>
+
+          <circle id="headMain" cx="150" cy="98" r="56" fill="#f7edd9"/>
+
+          <!-- ragdoll cheek ruffs -->
+          <g id="cheekRuffs" style="display:none" fill="#efe7d8">
+            <path d="M102 100 l -16 6 l 12 8 l -14 8 l 14 6 l -10 14 l 18 -2 l -4 14 l 14 -10 l 6 14 l 8 -14 Z"/>
+            <path d="M198 100 l 16 6 l -12 8 l 14 8 l -14 6 l 10 14 l -18 -2 l 4 14 l -14 -10 l -6 14 l -8 -14 Z"/>
+          </g>
+
+          <!-- face mask (colorpoint) -->
+          <ellipse id="faceMask" cx="150" cy="108" rx="40" ry="34" fill="#8a7a63"/>
+
+          <!-- forehead tabby M (lynx) -->
+          <path id="foreheadM" d="M134 62 l 7 12 l 7 -12 l 7 12 l 7 -12" stroke="#6e6250" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+          <!-- muzzle -->
+          <ellipse cx="150" cy="124" rx="19" ry="13" fill="#fffaf0"/>
+
+          <!-- eyes -->
+          <g id="eyes">
+            <ellipse class="eye" id="eyeL" cx="129" cy="97" rx="10" ry="13" fill="#86bfe3"/>
+            <ellipse class="eye" id="eyeR" cx="171" cy="97" rx="10" ry="13" fill="#86bfe3"/>
+            <ellipse class="eye pupil" cx="129" cy="99" rx="4.5" ry="9" fill="#2b2b33"/>
+            <ellipse class="eye pupil" cx="171" cy="99" rx="4.5" ry="9" fill="#2b2b33"/>
+            <circle cx="132" cy="93" r="2.6" fill="#fff"/>
+            <circle cx="174" cy="93" r="2.6" fill="#fff"/>
+          </g>
+          <!-- tear when sad -->
+          <path id="tear" d="M181 106 q 6 9 0 16 q -6 -7 0 -16" fill="#9fd4ff" style="display:none"/>
+
+          <!-- nose -->
+          <polygon points="144,117 156,117 150,125" fill="#d98a9e"/>
+
+          <!-- mouths -->
+          <path id="mouthHappy" d="M150 125 C 150 133, 142 136, 135 131 M150 125 C 150 133, 158 136, 165 131" stroke="#5b4a3f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path id="mouthSad" d="M137 140 Q150 131 163 140" stroke="#5b4a3f" stroke-width="2.5" fill="none" stroke-linecap="round" style="display:none"/>
+
+          <!-- whiskers -->
+          <g stroke="#c4b299" stroke-width="2" stroke-linecap="round">
+            <path d="M118 116 L 92 110"/>
+            <path d="M118 122 L 94 124"/>
+            <path d="M118 128 L 96 136"/>
+            <path d="M182 116 L 208 110"/>
+            <path d="M182 122 L 206 124"/>
+            <path d="M182 128 L 204 136"/>
+          </g>
+
+          <!-- ======== OUTFITS ======== -->
+          <g id="outfitDress" style="display:none">
+            <!-- pink dress -->
+            <path d="M98 182 C 102 224, 92 262, 82 302 L 218 302 C 208 262, 198 224, 202 182 C 180 172, 120 172, 98 182 Z" fill="#f7a8c4"/>
+            <path d="M82 302 L 218 302 L 214 288 L 86 288 Z" fill="#ef8fb3"/>
+            <g fill="#fff" opacity="0.65">
+              <circle cx="120" cy="220" r="5"/><circle cx="150" cy="235" r="5"/><circle cx="180" cy="220" r="5"/>
+              <circle cx="135" cy="258" r="5"/><circle cx="165" cy="258" r="5"/><circle cx="150" cy="282" r="5"/>
+            </g>
+            <rect x="112" y="160" width="12" height="24" rx="6" fill="#ef8fb3" transform="rotate(-12 118 172)"/>
+            <rect x="176" y="160" width="12" height="24" rx="6" fill="#ef8fb3" transform="rotate(12 182 172)"/>
+            <!-- bow at neck -->
+            <g>
+              <polygon points="150,168 132,158 132,178" fill="#f0759f"/>
+              <polygon points="150,168 168,158 168,178" fill="#f0759f"/>
+              <circle cx="150" cy="168" r="6" fill="#d95f88"/>
+            </g>
+            <!-- bow on head -->
+            <g>
+              <polygon points="188,34 172,26 174,44" fill="#f0759f"/>
+              <polygon points="188,34 204,28 202,46" fill="#f0759f"/>
+              <circle cx="188" cy="35" r="5.5" fill="#d95f88"/>
+            </g>
+          </g>
+
+          <g id="outfitSailor" style="display:none">
+            <!-- white top -->
+            <path d="M108 180 L 192 180 L 197 238 L 103 238 Z" fill="#ffffff" stroke="#dfe6f2" stroke-width="2"/>
+            <!-- sailor collar flaps -->
+            <polygon points="150,172 108,164 124,204" fill="#2f4d7d"/>
+            <polygon points="150,172 192,164 176,204" fill="#2f4d7d"/>
+            <path d="M118 172 L 130 194 M182 172 L 170 194" stroke="#ffffff" stroke-width="3"/>
+            <!-- neckerchief -->
+            <polygon points="150,184 140,200 160,200" fill="#e06060"/>
+            <circle cx="150" cy="190" r="6" fill="#c94f4f"/>
+            <!-- sailor hat -->
+            <g transform="rotate(-8 150 26)">
+              <ellipse cx="150" cy="24" rx="30" ry="10" fill="#ffffff" stroke="#dfe6f2" stroke-width="2"/>
+              <rect x="126" y="14" width="48" height="8" fill="#2f4d7d"/>
+            </g>
+          </g>
+
+          <g id="outfitSweater" style="display:none">
+            <clipPath id="sweaterClip">
+              <path d="M102 186 C 97 230, 92 264, 97 294 L 203 294 C 208 264, 203 230, 198 186 C 176 178, 124 178, 102 186 Z"/>
+            </clipPath>
+            <path d="M102 186 C 97 230, 92 264, 97 294 L 203 294 C 208 264, 203 230, 198 186 C 176 178, 124 178, 102 186 Z" fill="#e89b5a"/>
+            <g clip-path="url(#sweaterClip)">
+              <rect x="90" y="222" width="120" height="12" fill="#fdf3e3"/>
+              <rect x="90" y="252" width="120" height="12" fill="#fdf3e3"/>
+            </g>
+            <path d="M97 294 L 203 294 L 200 282 L 100 282 Z" fill="#c97e3e"/>
+            <!-- collar -->
+            <path d="M126 180 Q 150 196 174 180 L 170 168 Q 150 180 130 168 Z" fill="#c97e3e"/>
+          </g>
+        </g>
+      </svg>
+
+      <div id="floaters"></div>
+      <div id="purrBubble">Purrr...</div>
+
+      <!-- play overlay -->
+      <div id="playOverlay">
+        <div id="playTop"><span id="playScore">Score: 0</span><span id="playTime">15s</span></div>
+        <div id="playField"><span id="mouse" role="button" aria-label="Tap the mouse">&#128045;</span></div>
+        <div id="playResult">
+          <div class="score" id="playFinal">0</div>
+          <p id="playMsg">Great playing!</p>
+          <button id="playClose">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="petHint">Tip: drag your finger across Mochi to pet!</div>
+    <div id="statusText"></div>
+
+    <div class="meterRow">
+      <div class="meterLabel"><span>&#127860; Hunger</span><span id="hungerPct">80%</span></div>
+      <div class="meterBar"><div class="meterFill" id="hungerFill"></div></div>
+    </div>
+    <div class="meterRow">
+      <div class="meterLabel"><span>&#128149; Happiness</span><span id="happyPct">80%</span></div>
+      <div class="meterBar"><div class="meterFill" id="happyFill"></div></div>
+    </div>
+
+    <div class="btnRow">
+      <button class="bigBtn" id="feedBtn">&#127860; Feed</button>
+      <button class="bigBtn" id="playBtn">&#127918; Play</button>
+    </div>
+  </section>
+
+  <!-- ============ WARDROBE TAB ============ -->
+  <section id="tab-wardrobe" class="tabpage">
+    <h2 style="color:var(--pink-dark); text-align:center;">Mochi's Wardrobe</h2>
+    <button class="outfitCard" data-outfit="none">
+      <span class="emoji">&#128049;</span>
+      <span><span class="t">Au naturel</span><br><span class="d">No outfit, just natural fluff.</span></span>
+      <span class="tag"></span>
+    </button>
+    <button class="outfitCard" data-outfit="dress">
+      <span class="emoji">&#128090;</span>
+      <span><span class="t">Pink dress with a bow</span><br><span class="d">A sweet pink dress with polka dots and bows.</span></span>
+      <span class="tag"></span>
+    </button>
+    <button class="outfitCard" data-outfit="sailor">
+      <span class="emoji">&#9875;</span>
+      <span><span class="t">Blue sailor outfit</span><br><span class="d">Crisp sailor collar, neckerchief, and a tiny hat.</span></span>
+      <span class="tag"></span>
+    </button>
+    <button class="outfitCard" data-outfit="sweater">
+      <span class="emoji">&#129509;</span>
+      <span><span class="t">Cozy sweater</span><br><span class="d">A warm orange knit for chilly days.</span></span>
+      <span class="tag"></span>
+    </button>
+  </section>
+
+  <!-- ============ SETTINGS TAB ============ -->
+  <section id="tab-settings" class="tabpage">
+    <h2 style="color:var(--pink-dark); text-align:center;">Settings</h2>
+    <div class="setCard">
+      <h3>Breed</h3>
+      <label class="breedOpt"><input type="radio" name="breed" value="lynx"> <span><b>Lynx Point Siamese</b><br><small>Cream coat with tabby striped points.</small></span></label>
+      <label class="breedOpt"><input type="radio" name="breed" value="ragdoll"> <span><b>Ragdoll</b><br><small>Fluffy coat, blue eyes, soft colorpoints.</small></span></label>
+    </div>
+    <div class="setCard">
+      <h3>About</h3>
+      <p style="font-size:14px; margin:0;">Mochi's hunger and happiness fade with real time, even when you are away. Come back and check in every day to keep Mochi happy!</p>
+    </div>
+    <div class="setCard">
+      <button id="resetBtn">Reset everything</button>
+    </div>
+  </section>
+</main>
+
+<nav id="tabs">
+  <button class="tabBtn active" data-tab="tab-cat">&#128049; Cat</button>
+  <button class="tabBtn" data-tab="tab-wardrobe">&#128090; Wardrobe</button>
+  <button class="tabBtn" data-tab="tab-settings">&#9881; Settings</button>
+</nav>
+
+<!-- first visit breed chooser -->
+<div id="breedModal" class="hidden">
+  <div id="breedBox">
+    <h2>Meet your new cat!</h2>
+    <p>Pick a breed for Mochi. You can change this later in Settings.</p>
+    <button class="breedCard" data-breed="lynx">
+      <div class="t">Lynx Point Siamese</div>
+      <div class="d">Cream body with tabby striped points on the ears, face, tail, and paws.</div>
+      <div class="def">Default</div>
+    </button>
+    <button class="breedCard" data-breed="ragdoll">
+      <div class="t">Ragdoll</div>
+      <div class="d">Extra fluffy coat, bright blue eyes, and soft colorpoint markings.</div>
+    </button>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ================= state ================= */
+var LS_KEY = 'mochiPetSim.v1';
+var HUNGER_PER_HOUR = 9;   /* hunger 100 -> 0 in ~11 hours */
+var HAPPY_PER_HOUR  = 16;  /* happiness 100 -> 0 in ~6 hours */
+
+function defaultState(){
+  return {
+    name: 'Mochi',
+    breed: 'lynx',
+    hunger: 80,
+    happiness: 80,
+    outfit: 'none',
+    lastVisit: Date.now()
+  };
+}
+
+var state = defaultState();
+var isFirstVisit = true;
+try {
+  var raw = localStorage.getItem(LS_KEY);
+  if (raw) {
+    var saved = JSON.parse(raw);
+    if (saved && typeof saved === 'object') {
+      state = Object.assign(defaultState(), saved);
+      isFirstVisit = false;
+    }
+  }
+} catch (e) { /* storage unavailable, play in session only */ }
+
+function clamp(v){ return Math.max(0, Math.min(100, v)); }
+
+function applyDecay(){
+  var elapsedSec = (Date.now() - state.lastVisit) / 1000;
+  if (elapsedSec < 0) elapsedSec = 0;
+  state.hunger = clamp(state.hunger - elapsedSec * (HUNGER_PER_HOUR / 3600));
+  state.happiness = clamp(state.happiness - elapsedSec * (HAPPY_PER_HOUR / 3600));
+  state.lastVisit = Date.now();
+}
+
+function save(){
+  state.lastVisit = Date.now();
+  try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) {}
+}
+
+applyDecay();
+
+/* ================= element refs ================= */
+function $(id){ return document.getElementById(id); }
+var nameInput = $('nameInput'),
+    breedBadge = $('breedBadge'),
+    stage = $('stage'),
+    petArea = $('petArea'),
+    floaters = $('floaters'),
+    purrBubble = $('purrBubble'),
+    statusText = $('statusText'),
+    hungerFill = $('hungerFill'),
+    happyFill = $('happyFill'),
+    hungerPct = $('hungerPct'),
+    happyPct = $('happyPct');
+
+/* ================= breed ================= */
+var BREEDS = {
+  lynx: {
+    label: 'Lynx Point Siamese',
+    body: '#f7edd9',
+    point: '#8a7a63',
+    stripe: '#6e6250',
+    eye: '#86bfe3',
+    fluff: false
+  },
+  ragdoll: {
+    label: 'Ragdoll',
+    body: '#f8f2e7',
+    point: '#9c8266',
+    stripe: '#7d6852',
+    eye: '#2f6fd0',
+    fluff: true
+  }
+};
+
+function applyBreed(){
+  var b = BREEDS[state.breed] || BREEDS.lynx;
+  var pointIds = ['tailLynxMain','pawL','pawR','earL','earR','faceMask'];
+  pointIds.forEach(function(id){ $(id).setAttribute('fill', b.point); });
+  $('tailLynxMain').setAttribute('stroke', b.point);
+  $('bodyMain').setAttribute('fill', b.body);
+  $('haunchL').setAttribute('fill', b.body);
+  $('haunchR').setAttribute('fill', b.body);
+  $('headMain').setAttribute('fill', b.body);
+  document.querySelectorAll('#tailLynxStripes path, #earStripes path, #legStripes path, #foreheadM')
+    .forEach(function(el){ el.setAttribute('stroke', b.stripe); });
+
+  var eyeEls = document.querySelectorAll('#eyeL, #eyeR');
+  eyeEls.forEach(function(el){ el.setAttribute('fill', b.eye); });
+
+  var showFluff = b.fluff;
+  $('tailLynx').style.display = showFluff ? 'none' : '';
+  $('tailRagdoll').style.display = showFluff ? '' : 'none';
+  $('ruffChest').style.display = showFluff ? '' : 'none';
+  $('cheekRuffs').style.display = showFluff ? '' : 'none';
+  $('earTufts').style.display = showFluff ? '' : 'none';
+  $('foreheadM').style.display = showFluff ? 'none' : '';
+  $('earStripes').style.display = showFluff ? 'none' : '';
+  $('tailLynxStripes').style.display = showFluff ? 'none' : '';
+  $('legStripes').style.display = showFluff ? 'none' : '';
+
+  breedBadge.textContent = b.label;
+  var radios = document.querySelectorAll('input[name="breed"]');
+  radios.forEach(function(r){ r.checked = (r.value === state.breed); });
+}
+
+/* ================= outfit ================= */
+function applyOutfit(){
+  ['outfitDress','outfitSailor','outfitSweater'].forEach(function(id){
+    $(id).style.display = 'none';
+  });
+  var map = { dress: 'outfitDress', sailor: 'outfitSailor', sweater: 'outfitSweater' };
+  if (map[state.outfit]) $(map[state.outfit]).style.display = '';
+  document.querySelectorAll('.outfitCard').forEach(function(card){
+    var on = card.getAttribute('data-outfit') === state.outfit;
+    card.classList.toggle('wearing', on);
+    card.querySelector('.tag').textContent = on ? 'Wearing' : '';
+  });
+}
+
+/* ================= mood / status ================= */
+function setMood(){
+  var sad = state.hunger <= 15;
+  $('mouthHappy').style.display = sad ? 'none' : '';
+  $('mouthSad').style.display = sad ? '' : 'none';
+  $('tear').style.display = sad ? '' : 'none';
+}
+
+function updateStatus(){
+  var n = state.name || 'Mochi';
+  var msg;
+  if (state.hunger <= 15) {
+    msg = n + ' is very hungry and feeling sad. Please feed them a meal!';
+  } else if (state.happiness <= 15) {
+    msg = n + ' feels a little lonely. A few pets will cheer them right up.';
+  } else if (state.hunger <= 40) {
+    msg = n + "'s tummy is rumbling. Snack time!";
+  } else if (state.happiness <= 40) {
+    msg = n + ' wants some attention. Pet or play with them!';
+  } else if (state.hunger >= 75 && state.happiness >= 75) {
+    msg = n + ' is feeling wonderful! You are an amazing pet parent.';
+  } else {
+    msg = n + ' is happy and comfy.';
+  }
+  statusText.textContent = msg;
+}
+
+function render(){
+  hungerFill.style.width = state.hunger + '%';
+  happyFill.style.width = state.happiness + '%';
+  hungerPct.textContent = Math.round(state.hunger) + '%';
+  happyPct.textContent = Math.round(state.happiness) + '%';
+  setMood();
+  updateStatus();
+}
+
+/* ================= floaters ================= */
+function floaterAt(x, y, emoji){
+  var s = document.createElement('span');
+  s.className = 'floater';
+  s.textContent = emoji;
+  s.style.left = x + 'px';
+  s.style.top = y + 'px';
+  floaters.appendChild(s);
+  setTimeout(function(){ s.remove(); }, 1500);
+}
+
+function textFloaterAt(x, y, text){
+  var s = document.createElement('span');
+  s.className = 'floaterText';
+  s.textContent = text;
+  s.style.left = x + 'px';
+  s.style.top = y + 'px';
+  floaters.appendChild(s);
+  setTimeout(function(){ s.remove(); }, 1700);
+}
+
+var HEARTS = ['\u2764\uFE0F','\uD83D\uDC96','\uD83D\uDC95','\uD83D\uDC97'];
+function heartAt(x, y){
+  floaterAt(x, y, HEARTS[Math.floor(Math.random() * HEARTS.length)]);
+}
+
+function stagePoint(clientX, clientY){
+  var r = stage.getBoundingClientRect();
+  return { x: clientX - r.left, y: clientY - r.top };
+}
+
+/* ================= petting ================= */
+var isPetting = false;
+var lastHeart = 0;
+var purrTimer = null;
+
+function showPurr(){
+  purrBubble.classList.add('show');
+  if (purrTimer) clearTimeout(purrTimer);
+  purrTimer = setTimeout(function(){ purrBubble.classList.remove('show'); }, 1200);
+}
+
+function pet(clientX, clientY){
+  var p = stagePoint(clientX, clientY);
+  var t = Date.now();
+  if (t - lastHeart < 160) return;
+  lastHeart = t;
+  state.happiness = clamp(state.happiness + 1.5);
+  heartAt(p.x, p.y);
+  showPurr();
+  render();
+  saveSoon();
+}
+
+petArea.addEventListener('pointerdown', function(e){
+  isPetting = true;
+  state.happiness = clamp(state.happiness + 3);
+  var p = stagePoint(e.clientX, e.clientY);
+  heartAt(p.x, p.y);
+  showPurr();
+  render();
+  saveSoon();
+  e.preventDefault();
+});
+petArea.addEventListener('pointermove', function(e){
+  if (!isPetting) return;
+  pet(e.clientX, e.clientY);
+});
+window.addEventListener('pointerup', function(){ isPetting = false; });
+window.addEventListener('pointercancel', function(){ isPetting = false; });
+stage.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+
+/* ================= feed ================= */
+$('feedBtn').addEventListener('click', function(){
+  state.hunger = clamp(state.hunger + 25);
+  state.happiness = clamp(state.happiness + 4);
+  var r = stage.getBoundingClientRect();
+  floaterAt(r.width * 0.5, r.height * 0.35, '\uD83C\uDF57');
+  floaterAt(r.width * 0.62, r.height * 0.28, '\uD83D\uDC1F');
+  textFloaterAt(r.width * 0.5, r.height * 0.5, 'Nom nom nom!');
+  render();
+  saveSoon();
+});
+
+/* ================= play mini game ================= */
+var game = { running:false, score:0, timeLeft:15, moveTimer:null, clockTimer:null };
+
+function moveMouse(){
+  var field = $('playField');
+  var m = $('mouse');
+  var fw = field.clientWidth, fh = field.clientHeight;
+  var mw = 60, mh = 60;
+  var x = Math.random() * Math.max(10, fw - mw);
+  var y = Math.random() * Math.max(10, fh - mh);
+  m.style.left = x + 'px';
+  m.style.top = y + 'px';
+}
+
+function endGame(){
+  game.running = false;
+  clearInterval(game.moveTimer);
+  clearInterval(game.clockTimer);
+  state.happiness = clamp(state.happiness + 5);
+  $('playFinal').textContent = game.score;
+  var n = state.name || 'Mochi';
+  if (game.score >= 12) $('playMsg').textContent = 'Amazing! ' + n + ' is so happy and tired now.';
+  else if (game.score >= 6) $('playMsg').textContent = 'Great playing! ' + n + ' loved chasing the mouse.';
+  else $('playMsg').textContent = 'Fun! ' + n + ' enjoyed the game.';
+  $('playResult').classList.add('show');
+  render();
+  saveSoon();
+}
+
+$('playBtn').addEventListener('click', function(){
+  $('playOverlay').classList.add('open');
+  $('playResult').classList.remove('show');
+  game.running = true;
+  game.score = 0;
+  game.timeLeft = 15;
+  $('playScore').textContent = 'Score: 0';
+  $('playTime').textContent = '15s';
+  moveMouse();
+  game.moveTimer = setInterval(moveMouse, 750);
+  game.clockTimer = setInterval(function(){
+    game.timeLeft--;
+    $('playTime').textContent = game.timeLeft + 's';
+    if (game.timeLeft <= 0) endGame();
+  }, 1000);
+});
+
+$('mouse').addEventListener('pointerdown', function(e){
+  if (!game.running) return;
+  game.score++;
+  state.happiness = clamp(state.happiness + 2);
+  $('playScore').textContent = 'Score: ' + game.score;
+  var p = stagePoint(e.clientX, e.clientY);
+  var pr = $('playOverlay').getBoundingClientRect();
+  textFloaterAt(e.clientX - pr.left, e.clientY - pr.top, '+1');
+  heartAt(p.x, p.y);
+  moveMouse();
+  render();
+  e.preventDefault();
+  e.stopPropagation();
+});
+
+$('playClose').addEventListener('click', function(){
+  $('playOverlay').classList.remove('open');
+});
+
+/* ================= name ================= */
+nameInput.value = state.name || 'Mochi';
+nameInput.addEventListener('input', function(){
+  var v = nameInput.value.trim();
+  state.name = v ? v : 'Mochi';
+  render();
+  saveSoon();
+});
+
+/* ================= tabs ================= */
+document.querySelectorAll('.tabBtn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.tabBtn').forEach(function(b){ b.classList.remove('active'); });
+    document.querySelectorAll('.tabpage').forEach(function(p){ p.classList.remove('active'); });
+    btn.classList.add('active');
+    $(btn.getAttribute('data-tab')).classList.add('active');
+  });
+});
+
+/* ================= wardrobe ================= */
+document.querySelectorAll('.outfitCard').forEach(function(card){
+  card.addEventListener('click', function(){
+    state.outfit = card.getAttribute('data-outfit');
+    applyOutfit();
+    saveSoon();
+  });
+});
+
+/* ================= settings ================= */
+document.querySelectorAll('input[name="breed"]').forEach(function(radio){
+  radio.addEventListener('change', function(){
+    if (radio.checked) {
+      state.breed = radio.value;
+      applyBreed();
+      render();
+      saveSoon();
+    }
+  });
+});
+
+$('resetBtn').addEventListener('click', function(){
+  if (confirm('Are you sure? This erases Mochi and starts over.')) {
+    try { localStorage.removeItem(LS_KEY); } catch (e) {}
+    location.reload();
+  }
+});
+
+/* ================= breed modal ================= */
+if (isFirstVisit) {
+  $('breedModal').classList.remove('hidden');
+}
+document.querySelectorAll('.breedCard').forEach(function(card){
+  card.addEventListener('click', function(){
+    state.breed = card.getAttribute('data-breed');
+    $('breedModal').classList.add('hidden');
+    applyBreed();
+    render();
+    save();
+  });
+});
+
+/* ================= blinking ================= */
+function blink(){
+  var eyes = document.querySelectorAll('.eye');
+  eyes.forEach(function(e){ e.style.transform = 'scaleY(0.12)'; });
+  setTimeout(function(){
+    eyes.forEach(function(e){ e.style.transform = ''; });
+  }, 150);
+  setTimeout(blink, 2600 + Math.random() * 2600);
+}
+setTimeout(blink, 2200);
+
+/* ================= tick + autosave ================= */
+var saveTimer = null;
+function saveSoon(){
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(save, 1200);
+}
+
+setInterval(function(){
+  state.hunger = clamp(state.hunger - (15 / 3600) * HUNGER_PER_HOUR);
+  state.happiness = clamp(state.happiness - (15 / 3600) * HAPPY_PER_HOUR);
+  render();
+}, 15000);
+
+setInterval(save, 60000);
+window.addEventListener('beforeunload', save);
+document.addEventListener('visibilitychange', function(){
+  if (document.hidden) save();
+});
+
+/* ================= init ================= */
+applyBreed();
+applyOutfit();
+render();
+if (!isFirstVisit) save();
+
+})();
+</script>
+</body>
+</html>
