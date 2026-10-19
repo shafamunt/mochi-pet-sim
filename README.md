@@ -26,4 +26,4 @@ Just open `mochi.html` in any modern browser (double click it, or serve the fold
 
 Another AI picking this up: all game source lives in `mochi.html` (markup, styles, and the game script are inline, no build step). Edit that file directly, open it in a browser to test, and hand the finished result back to Shafayet's Muse so it can rebuild and redeploy the hosted artifact.
 
-Hosted artifact link: TBD (coordinator fills in after build)
+Hosted artifact slug: `mochi-the-cat` (web_static). Open and share it from its artifact card in Muse.
